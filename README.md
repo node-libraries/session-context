@@ -106,3 +106,58 @@ export const prisma = new Proxy<PrismaClient>({} as never, {
   },
 });
 ```
+
+- functions/server.ts
+
+```ts
+import { createRequestHandler, ServerBuild } from '@remix-run/cloudflare';
+import * as build from '../build/server';
+import { getLoadContext } from '../load-context';
+import { runSession } from 'session-context';
+
+const handler = createRequestHandler(build as unknown as ServerBuild);
+
+const fetch = async (request: Request, env: Env, ctx: ExecutionContext) => {
+  return runSession(() => {
+    const context = getLoadContext({
+      request,
+      context: {
+        cloudflare: {
+          env,
+          ctx: {
+            waitUntil: ctx.waitUntil.bind(ctx) ?? (() => {}),
+            passThroughOnException: ctx.passThroughOnException.bind(ctx) ?? (() => {}),
+          },
+          cf: request.cf as never,
+          caches: caches as never,
+        },
+      },
+    });
+    return handler(request, context);
+  });
+};
+
+export default {
+  fetch,
+};
+```
+
+- wrangler.toml
+
+```toml
+#:schema node_modules/wrangler/config-schema.json
+name = "xxxxx"
+compatibility_date = "2024-09-25"
+compatibility_flags = ["nodejs_compat"]
+main = "./functions/server.ts"
+assets = { directory = "./build/client" }
+minify = true
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "xxx"
+database_name = "xxxx"
+database_id = "xxxxxx"
+```
