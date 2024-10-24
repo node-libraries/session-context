@@ -84,27 +84,22 @@ export const prisma = new Proxy<PrismaClient>({} as never, {
 });
 ```
 
-- app/routes/index.tsx
+- app/routes/\_index.tsx
 
 ```tsx
-import { PrismaClient } from '@prisma/client';
-import { PrismaD1 } from '@prisma/adapter-d1';
-import { getSessionContext } from 'session-context';
+import { useLoaderData } from '@remix-run/react';
+import { prisma } from '~/libs/prisma';
 
-export const getPrisma = () => {
-  const store = getSessionContext<{ prisma?: PrismaClient; env: Env }>();
-  if (!store.prisma) {
-    const adapter = new PrismaD1(store.env.DB);
-    store.prisma = new PrismaClient({ adapter });
-  }
-  return store.prisma;
-};
+export default function Index() {
+  const value = useLoaderData<string>();
+  return <div>{value}</div>;
+}
 
-export const prisma = new Proxy<PrismaClient>({} as never, {
-  get(_target: unknown, props: keyof PrismaClient) {
-    return getPrisma()[props];
-  },
-});
+export async function loader(): Promise<string> {
+  //You can directly use the PrismaClient instance received from the module
+  const users = await prisma.user.findMany();
+  return JSON.stringify(users);
+}
 ```
 
 - functions/server.ts
