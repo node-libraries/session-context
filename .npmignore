@@ -1,0 +1,9 @@
+/node_modules
+/esm
+/src
+/test
+tsconfig.json
+tsconfig.esm.json
+.eslintrc.json
+.prettierrc
+.gitignore
