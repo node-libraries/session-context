@@ -12,11 +12,14 @@ export const createSessionContext = () => {
 };
 
 export const getSessionContext = <T extends Record<string, unknown>>() => {
-  const store = global.__context.getStore();
+  const store = global.__context?.getStore();
   if (!store) {
-    throw new Error('Global store is not initialized');
+    throw new Error('Session context is not initialized');
   }
-  return store as T;
+  if (!store.appContext) {
+    store.appContext = {};
+  }
+  return store.appContext as T;
 };
 
 export const runSession = <R, TArgs extends unknown[]>(
@@ -25,4 +28,19 @@ export const runSession = <R, TArgs extends unknown[]>(
 ) => {
   const context = createSessionContext();
   return context.run({}, callback, ...args);
+};
+
+export const setProcessEnv = (env: unknown) => {
+  const store = global.__context?.getStore();
+  if (!store) {
+    throw new Error('Session context is not initialized');
+  }
+  store.env = env;
+  if (!Object.getOwnPropertyDescriptor(process, 'env')?.get) {
+    Object.defineProperty(process, 'env', {
+      get() {
+        return store.env;
+      },
+    });
+  }
 };

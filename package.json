@@ -1,6 +1,6 @@
 {
   "name": "session-context",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "main": "./dist/cjs/index.js",
   "types": "./dist/cjs/index.d.ts",
   "exports": {

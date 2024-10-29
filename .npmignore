@@ -7,3 +7,4 @@ tsconfig.esm.json
 .eslintrc.json
 .prettierrc
 .gitignore
+eslint.config.mjs
